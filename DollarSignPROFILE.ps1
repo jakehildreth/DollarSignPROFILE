@@ -43,5 +43,5 @@ function $FunctionName {
     }
 }
 "@
-    $Framework | Out-File -Path $Path
+    $Framework | Out-File -FilePath $Path
 }
