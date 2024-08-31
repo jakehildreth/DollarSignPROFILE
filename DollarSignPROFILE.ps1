@@ -2,13 +2,17 @@ function New-Function {
     [CmdletBinding()]
     param (
         [Parameter(Mandatory, Position = 0)]
-        [string]$FunctionName,
+        [ValidateScript({(Get-Verb).Verb -contains $_})]
+        [string]$Verb,
         [Parameter(Mandatory, Position = 1)]
+        [string]$Noun,
+        [Parameter(Mandatory, Position = 2)]
         [string]$Path
     )
 
     #requires -Version 5
 
+    $FunctionName = "$Verb-$Noun"
     $Path = Join-Path -Path $Path -ChildPath "$($FunctionName).ps1"
     $Framework = @"
 function $FunctionName {
@@ -17,7 +21,7 @@ function $FunctionName {
 
         .DESCRIPTION
 
-        .PARAMETER
+        .PARAMETER Parameter
 
         .INPUTS
 
