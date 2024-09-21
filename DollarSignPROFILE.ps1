@@ -49,3 +49,5 @@ function $FunctionName {
 "@
     $Framework | Out-File -FilePath $Path
 }
+
+oh-my-posh init pwsh --config 'https://raw.githubusercontent.com/JanDeDobbeleer/oh-my-posh/main/themes/pure.omp.json' | Invoke-Expression
