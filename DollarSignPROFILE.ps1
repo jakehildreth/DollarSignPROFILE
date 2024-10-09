@@ -2,7 +2,7 @@ function New-Function {
     [CmdletBinding()]
     param (
         [Parameter(Mandatory, Position = 0)]
-        [ValidateScript({(Get-Verb).Verb -contains $_})]
+        [ValidateScript({ (Get-Verb).Verb -contains $_ })]
         [string]$Verb,
         [Parameter(Mandatory, Position = 1)]
         [string]$Noun,
