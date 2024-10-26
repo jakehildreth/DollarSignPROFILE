@@ -1,3 +1,20 @@
+[Console]::OutputEncoding = [Text.Encoding]::UTF8
+function New-Credential {
+    param(
+        [string]$User
+    )
+
+    Write-Host @"
+
+PowerShell credential request
+Enter your credentials.
+"@
+    if ($null -eq $User) { $User = Read-Host "User" }
+    $Password = Read-Host "Password for user $User" -AsSecureString
+    $Credential = [System.Management.Automation.PSCredential]::New($User, $Password)
+
+    $Credential
+}
 function New-Function {
     [CmdletBinding()]
     param (
@@ -50,4 +67,19 @@ function $FunctionName {
     $Framework | Out-File -FilePath $Path
 }
 
-oh-my-posh init pwsh --config 'https://raw.githubusercontent.com/JanDeDobbeleer/oh-my-posh/main/themes/pure.omp.json' | Invoke-Expression
+function prompt {
+    Write-Host
+    $CurrentLocation = $executionContext.SessionState.Path.CurrentLocation
+    [string]$GitBranch = git branch --show-current
+    if ($?) {
+        [int]$Ahead = (git rev-list --left-right --count $GitBranch).Split()[0]
+        [int]$Behind = (git rev-list --left-right --count $GitBranch).Split()[1]
+        Write-Host -NoNewLine "$CurrentLocation [$GitBranch "
+        Write-Host "+$Ahead " -NoNewLine -ForegroundColor Green
+        Write-Host "-$Behind" -NoNewLine -ForegroundColor Red
+        Write-Host "]"
+    } else {
+        Write-Host $CurrentLocation
+    }
+    "PS$('>' * ($nestedPromptLevel + 1)) "
+}
