@@ -84,16 +84,24 @@ function prompt {
     }
     "PS$('>' * ($nestedPromptLevel + 1)) "
 }
-function Get-IPAddresses {
-    'for i in $(ifconfig -l); do
-    case $i in
-    (lo0)
-        ;;
-    (*)
-        set -- $(ifconfig $i | grep "inet [1-9]")
-        if test $# -gt 1; then
-            echo $i: $2
-        fi
-    esac
-    done' | /bin/zsh
+function Get-IPAddress {
+    if (Test-Path -Path /bin/zsh) {
+        'for i in $(ifconfig -l); do
+        case $i in
+        (lo0)
+            ;;
+        (*)
+            set -- $(ifconfig $i | grep "inet [1-9]")
+            if test $# -gt 1; then
+                echo $i: $2
+            fi
+        esac
+        done' | /bin/zsh
+    } elseif (Get-Command -Name Get-NetIPAddress) {
+        Get-NetIPAddress | Where-Object AddressFamily -eq 'IPv4' | ForEach-Object {
+            "$($_.InterfaceAlias): $($_.IPAddress)"
+        }
+    } else {
+        Write-Warning 'No IP address retrieval method found.'
+    }
 }
