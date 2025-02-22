@@ -78,11 +78,16 @@ function prompt {
         # Write-Host "+$Ahead " -NoNewLine -ForegroundColor Green
         # Write-Host "-$Behind" -NoNewLine -ForegroundColor Red
         # Write-Host "]"
-        Write-Host "$CurrentLocation [$GitBranch]"
+        Write-Host "$($CurrentLocation.ToString() -ireplace [regex]::escape($HOME),'~') [$GitBranch]" 
+        # Write-Host "$CurrentLocation [$GitBranch]"
     } else {
-        Write-Host $CurrentLocation
+        Write-Host "$($CurrentLocation.ToString() -ireplace [regex]::escape($HOME),'~')" 
     }
     "PS$('>' * ($nestedPromptLevel + 1)) "
+}
+
+$PSDefaultParameterValues = @{
+    'Out-Default:OutVariable' = 'LastOutput' # Saves output of the last command to the variable $LastOutput
 }
 function Get-IPAddress {
     if (Test-Path -Path /bin/zsh) {
@@ -98,7 +103,7 @@ function Get-IPAddress {
         esac
         done' | /bin/zsh
     } elseif (Get-Command -Name Get-NetIPAddress) {
-        Get-NetIPAddress | Where-Object AddressFamily -eq 'IPv4' | ForEach-Object {
+        Get-NetIPAddress | Where-Object AddressFamily -EQ 'IPv4' | ForEach-Object {
             "$($_.InterfaceAlias): $($_.IPAddress)"
         }
     } else {
