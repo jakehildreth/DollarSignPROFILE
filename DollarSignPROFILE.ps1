@@ -52,7 +52,7 @@ function $FunctionName {
     param (
     )
 
-    #requires -Version 5
+    #requires -Version 5.1
 
     begin {
     }
