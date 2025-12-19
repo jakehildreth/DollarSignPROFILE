@@ -72,18 +72,11 @@ function prompt {
     $CurrentLocation = $executionContext.SessionState.Path.CurrentLocation
     [string]$GitBranch = git branch --show-current
     if ($?) {
-        # [int]$Ahead = (git rev-list --left-right --count $GitBranch).Split()[0]
-        # [int]$Behind = (git rev-list --left-right --count $GitBranch).Split()[1]
-        # Write-Host -NoNewLine "$CurrentLocation [$GitBranch "
-        # Write-Host "+$Ahead " -NoNewLine -ForegroundColor Green
-        # Write-Host "-$Behind" -NoNewLine -ForegroundColor Red
-        # Write-Host "]"
-        Write-Host "$($CurrentLocation.ToString() -ireplace [regex]::escape($HOME),'~') [$GitBranch]" 
-        # Write-Host "$CurrentLocation [$GitBranch]"
+        Write-Host "$($CurrentLocation.ToString() -ireplace [regex]::escape($HOME),'~') [$GitBranch]"
     } else {
         Write-Host "$($CurrentLocation.ToString() -ireplace [regex]::escape($HOME),'~')" 
     }
-    "PS$('>' * ($nestedPromptLevel + 1)) "
+    "PS$($PSVersionTable.PSVersion.Major)$('>' * ($nestedPromptLevel + 1)) "
 }
 
 $PSDefaultParameterValues = @{
