@@ -1,4 +1,5 @@
 [Console]::OutputEncoding = [Text.Encoding]::UTF8
+
 function New-Credential {
     param(
         [string]$User
@@ -76,7 +77,7 @@ function prompt {
     } else {
         Write-Host "$($CurrentLocation.ToString() -ireplace [regex]::escape($HOME),'~')" 
     }
-    "PS$($PSVersionTable.PSVersion.Major)$('>' * ($nestedPromptLevel + 1)) "
+    "[$($Host.UI.RawUI.WindowSize.Width)x$($Host.UI.RawUI.WindowSize.Height)]PS$($PSVersionTable.PSVersion.Major)$('>' * ($nestedPromptLevel + 1)) "
 }
 
 $PSDefaultParameterValues = @{
