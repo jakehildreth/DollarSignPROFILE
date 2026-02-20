@@ -69,7 +69,7 @@ function $FunctionName {
 }
 
 function prompt {
-    Write-Host
+    Write-Host 'HIIIII'
     $CurrentLocation = $executionContext.SessionState.Path.CurrentLocation
     [string]$GitBranch = git branch --show-current
     if ($?) {
