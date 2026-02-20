@@ -25,6 +25,7 @@ $ErrorActionPreference = 'Stop'
 
 try {
     $ProfileContent = (Invoke-WebRequest -Uri $SourceUri).Content
+    Write-Host '[i] DollarSignPROFILE.ps1 successfully downloaded' -ForegroundColor Cyan
 
     $ProfileDirectory = Split-Path -Path $PROFILE -Parent
     if (-not (Test-Path -Path $ProfileDirectory)) {
@@ -32,10 +33,10 @@ try {
     }
 
     Set-Content -Path $PROFILE -Value $ProfileContent -Encoding UTF8
-    Write-Host '[+] Profile written to $PROFILE' -ForegroundColor Green
+    Write-Host '[i] DollarSignPROFILE.ps1 written to $PROFILE' -ForegroundColor Cyan
 
     . $PROFILE
-    Write-Host '[+] Profile loaded successfully' -ForegroundColor Green
+    Write-Host '[+] $PROFILE loaded successfully' -ForegroundColor Green
 } catch {
     Write-Error "[x] Installation failed: $_"
 }
