@@ -32,10 +32,10 @@ try {
     }
 
     Set-Content -Path $PROFILE -Value $ProfileContent -Encoding UTF8
-    Write-Host "[+] Profile written to $PROFILE"
+    Write-Host '[+] Profile written to $PROFILE' -ForegroundColor Green
 
     . $PROFILE
-    Write-Host "[+] Profile loaded successfully"
+    Write-Host '[+] Profile loaded successfully' -ForegroundColor Green
 } catch {
-    Write-Error "Installation failed: $_"
+    Write-Error "[x] Installation failed: $_"
 }
