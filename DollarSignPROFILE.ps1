@@ -1,5 +1,8 @@
 [Console]::OutputEncoding = [Text.Encoding]::UTF8
 
+# Enable Ctrl+U to clear line on Windows
+Set-PSReadLineKeyHandler -Key Ctrl+u -Function BackwardDeleteLine
+
 function New-Credential {
     param(
         [string]$User
