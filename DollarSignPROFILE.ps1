@@ -74,11 +74,11 @@ function $FunctionName {
 function prompt {
     Write-Host
     $CurrentLocation = $executionContext.SessionState.Path.CurrentLocation
-    [string]$GitBranch = git branch --show-current
-    if ($?) {
+    $GitBranch = & { $ErrorActionPreference = 'SilentlyContinue'; git branch --show-current 2>&1 } | Where-Object { $_ -is [string] }
+    if ($LASTEXITCODE -eq 0 -and $GitBranch) {
         Write-Host "[$($Host.UI.RawUI.WindowSize.Width)x$($Host.UI.RawUI.WindowSize.Height)] $($CurrentLocation.ToString() -ireplace [regex]::escape($HOME),'~') [$GitBranch]"
     } else {
-        Write-Host "[$($Host.UI.RawUI.WindowSize.Width)x$($Host.UI.RawUI.WindowSize.Height)] $($CurrentLocation.ToString() -ireplace [regex]::escape($HOME),'~')" 
+        Write-Host "[$($Host.UI.RawUI.WindowSize.Width)x$($Host.UI.RawUI.WindowSize.Height)] $($CurrentLocation.ToString() -ireplace [regex]::escape($HOME),'~')"
     }
     "PS$($PSVersionTable.PSVersion.Major)$('>' * ($nestedPromptLevel + 1)) "
 }
@@ -86,6 +86,7 @@ function prompt {
 $PSDefaultParameterValues = @{
     'Out-Default:OutVariable' = 'LastOutput' # Saves output of the last command to the variable $LastOutput
 }
+
 function Get-IPAddress {
     if (Test-Path -Path /bin/zsh) {
         'for i in $(ifconfig -l); do
@@ -106,4 +107,13 @@ function Get-IPAddress {
     } else {
         Write-Warning 'No IP address retrieval method found.'
     }
+}
+
+function Get-AgentInstructions {
+    @'
+Please read and apply my personal instructions:
+https://raw.githubusercontent.com/jakehildreth/jakehildreth/refs/heads/main/.github/copilot-instructions.md
+then read and apply PowerShell best practices:
+https://raw.githubusercontent.com/github/awesome-copilot/refs/heads/main/instructions/powershell.instructions.md
+'@ | Set-Clipboard
 }
