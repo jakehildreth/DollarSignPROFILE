@@ -1,7 +1,16 @@
 [Console]::OutputEncoding = [Text.Encoding]::UTF8
 
 # Enable Ctrl+U to clear line on Windows
-Set-PSReadLineKeyHandler -Key Ctrl+u -Function BackwardDeleteLine
+Set-PSReadLineKeyHandler -Chord 'Ctrl+u' -Function BackwardDeleteLine
+
+# Enable ESC to clear full comand on macOS
+Set-PSReadLineKeyHandler -Chord 'Escape' -Function RevertLine
+
+# Make Alt+Arrow and Ctrl+Arrow work the same on all platforms
+Set-PSReadLineKeyHandler -Chord 'Alt+LeftArrow'  -Function BackwardWord
+Set-PSReadLineKeyHandler -Chord 'Alt+RightArrow' -Function ForwardWord
+Set-PSReadLineKeyHandler -Chord 'Ctrl+LeftArrow'  -Function BackwardWord
+Set-PSReadLineKeyHandler -Chord 'Ctrl+RightArrow' -Function ForwardWord
 
 function New-Credential {
     param(
@@ -109,11 +118,11 @@ function Get-IPAddress {
     }
 }
 
-function Get-AgentInstructions {
+function gai {
     @'
-Please read and apply my personal instructions:
+Please read and follow my personal instructions:
 https://raw.githubusercontent.com/jakehildreth/jakehildreth/refs/heads/main/.github/copilot-instructions.md
-then read and apply PowerShell best practices:
+then read and follow PowerShell best practices:
 https://raw.githubusercontent.com/github/awesome-copilot/refs/heads/main/instructions/powershell.instructions.md
 '@ | Set-Clipboard
 }
