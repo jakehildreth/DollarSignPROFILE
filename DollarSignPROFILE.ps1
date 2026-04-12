@@ -6,11 +6,19 @@ Set-PSReadLineKeyHandler -Chord 'Ctrl+u' -Function BackwardDeleteLine
 # Enable ESC to clear full comand on macOS
 Set-PSReadLineKeyHandler -Chord 'Escape' -Function RevertLine
 
-# Make Alt+Arrow and Ctrl+Arrow work the same on all platforms
+# Make Alt+Arrow and Ctrl+Arrow work the same on Mac+Windows
 Set-PSReadLineKeyHandler -Chord 'Alt+LeftArrow'  -Function BackwardWord
 Set-PSReadLineKeyHandler -Chord 'Alt+RightArrow' -Function ForwardWord
 Set-PSReadLineKeyHandler -Chord 'Ctrl+LeftArrow'  -Function BackwardWord
 Set-PSReadLineKeyHandler -Chord 'Ctrl+RightArrow' -Function ForwardWord
+
+# Make Ctrl+Backspace and Alt+Backspace work the same on Mac+Windows
+Set-PSReadLineKeyHandler -Chord 'Ctrl+Backspace' -Function BackwardDeleteWord
+Set-PSReadLineKeyHandler -Chord 'Alt+Backspace' -Function BackwardDeleteWord
+
+# Make Ctrl+Delete and Alt+Delete work the same on Mac+Windows
+Set-PSReadLineKeyHandler -Chord 'Ctrl+Delete' -Function DeleteWord
+Set-PSReadLineKeyHandler -Chord 'Alt+Delete' -Function DeleteWord
 
 function New-Credential {
     param(
@@ -124,5 +132,7 @@ Please read and follow my personal instructions:
 https://raw.githubusercontent.com/jakehildreth/jakehildreth/refs/heads/main/.github/copilot-instructions.md
 then read and follow PowerShell best practices:
 https://raw.githubusercontent.com/github/awesome-copilot/refs/heads/main/instructions/powershell.instructions.md
+then read and follow Pester testing best practices:
+https://raw.githubusercontent.com/github/awesome-copilot/refs/heads/main/instructions/powershell-pester-5.instructions.md
 '@ | Set-Clipboard
 }
