@@ -1,4 +1,4 @@
-# DollarSignPROFILE — Zsh Profile
+# dotzshrc
 # https://github.com/jakehildreth/DollarSignPROFILE
 
 #region Self-Update
@@ -6,7 +6,7 @@ __dollarsign_autoupdate() {
     # Only run in interactive shells
     [[ -o interactive ]] || return 0
 
-    local self_update_url='https://raw.githubusercontent.com/jakehildreth/DollarSignPROFILE/refs/heads/main/DollarSignPROFILE.zsh'
+    local self_update_url='https://raw.githubusercontent.com/jakehildreth/DollarSignPROFILE/refs/heads/main/dotzshrc'
     local self_path="${ZDOTDIR:-$HOME}/.zshrc"
 
     local local_content

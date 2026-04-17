@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Install-DollarSignPROFILE.sh
+# install.sh
 # Installs DollarSignPROFILE to the current user's bash or zsh profile.
 #
 # .SYNOPSIS
@@ -12,13 +12,13 @@
 #   both profiles are installed.
 #
 # .EXAMPLE
-#   curl -fsSL https://raw.githubusercontent.com/jakehildreth/DollarSignPROFILE/refs/heads/main/Install-DollarSignPROFILE.sh | bash
+#   curl -fsSL https://raw.githubusercontent.com/jakehildreth/DollarSignPROFILE/refs/heads/main/install.sh | bash
 #
 # .NOTES
 #   Source: https://github.com/jakehildreth/DollarSignPROFILE
 
-readonly _BASH_PROFILE_URL='https://raw.githubusercontent.com/jakehildreth/DollarSignPROFILE/refs/heads/main/DollarSignPROFILE.bash'
-readonly _ZSH_PROFILE_URL='https://raw.githubusercontent.com/jakehildreth/DollarSignPROFILE/refs/heads/main/DollarSignPROFILE.zsh'
+readonly _BASH_PROFILE_URL='https://raw.githubusercontent.com/jakehildreth/DollarSignPROFILE/refs/heads/main/dotbashrc'
+readonly _ZSH_PROFILE_URL='https://raw.githubusercontent.com/jakehildreth/DollarSignPROFILE/refs/heads/main/dotzshrc'
 
 readonly _CYAN='\033[0;36m'
 readonly _GREEN='\033[0;32m'

@@ -1,11 +1,11 @@
 # Verification Plan: Bash/Zsh Conversion
 
-Features: `DollarSignPROFILE.bash`, `DollarSignPROFILE.zsh`, `Install-DollarSignPROFILE.sh`
+Features: `dotbashrc`, `dotzshrc`, `install.sh`
 
 ---
 
 ## 1. Prompt format
-**Setup:** Source `DollarSignPROFILE.bash` in a fresh bash session; source `DollarSignPROFILE.zsh` in a fresh zsh session.
+**Setup:** Source `dotbashrc` in a fresh bash session; source `dotzshrc` in a fresh zsh session.
 **Expected:** Prompt renders as:
 ```
 [80×24] ~/path [branch]
@@ -84,7 +84,7 @@ Blank line precedes each prompt. `[branch]` appears only inside a git repo; omit
 ---
 
 ## 12. Keybindings — bash (interactive)
-**Setup:** Source `DollarSignPROFILE.bash` in an interactive bash session (iTerm2 or GNOME Terminal).
+**Setup:** Source `dotbashrc` in an interactive bash session (iTerm2 or GNOME Terminal).
 **Expected:** All ten bindings fire correctly:
 - Ctrl+U clears from cursor to line start
 - Escape (or double-Escape) reverts/clears line
@@ -96,13 +96,13 @@ Blank line precedes each prompt. `[branch]` appears only inside a git repo; omit
 ---
 
 ## 13. Keybindings — zsh (interactive)
-**Setup:** Source `DollarSignPROFILE.zsh` in an interactive zsh session.
+**Setup:** Source `dotzshrc` in an interactive zsh session.
 **Expected:** Same ten bindings fire correctly via `bindkey`. Double-Escape clears line without breaking alt-key sequences.
 
 ---
 
 ## 14. Keybindings — non-interactive bash
-**Setup:** `bash -c '. DollarSignPROFILE.bash'`
+**Setup:** `bash -c '. dotbashrc'`
 **Expected:** No errors; `bind` calls skipped via `[[ $- == *i* ]]` guard.
 
 ---

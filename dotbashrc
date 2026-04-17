@@ -1,4 +1,4 @@
-# DollarSignPROFILE — Bash Profile
+# dotbashrc
 # https://github.com/jakehildreth/DollarSignPROFILE
 
 #region Self-Update
@@ -6,7 +6,7 @@ __dollarsign_autoupdate() {
     # Only run in interactive shells
     [[ $- == *i* ]] || return 0
 
-    local self_update_url='https://raw.githubusercontent.com/jakehildreth/DollarSignPROFILE/refs/heads/main/DollarSignPROFILE.bash'
+    local self_update_url='https://raw.githubusercontent.com/jakehildreth/DollarSignPROFILE/refs/heads/main/dotbashrc'
     local self_path="${HOME}/.bashrc"
 
     local local_content

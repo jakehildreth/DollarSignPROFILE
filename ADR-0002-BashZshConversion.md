@@ -15,23 +15,23 @@
 
 ### 1. Two separate files over a shared polyglot file
 
-**Decision:** Produce `DollarSignPROFILE.bash` and `DollarSignPROFILE.zsh` as independent files.
+**Decision:** Produce `dotbashrc` and `dotzshrc` as independent files.
 
 **Rationale:** Bash and zsh differ enough in keybinding APIs (`bind` vs `bindkey`), prompt systems (`PROMPT_COMMAND`+`PS1` vs `precmd`+`PROMPT`), word-splitting semantics, and file-path introspection (`$BASH_SOURCE` vs `${ZDOTDIR:-$HOME}/.zshrc`) that a shared file with shell-detection conditionals would be harder to read and maintain than two clean files. Each file is sourced by a different rc file (`~/.bashrc` vs `~/.zshrc`), so there is no runtime benefit to sharing.
 
-**Rejected:** Single `DollarSignPROFILE.sh` with `[[ -n $ZSH_VERSION ]]` / `[[ -n $BASH_VERSION ]]` guards throughout; three-file base+wrapper approach (unnecessary abstraction for two target shells).
+**Rejected:** Single `dotshrc` with `[[ -n $ZSH_VERSION ]]` / `[[ -n $BASH_VERSION ]]` guards throughout; three-file base+wrapper approach (unnecessary abstraction for two target shells).
 
 ---
 
 ### 2. Installer replaces ~/.bashrc / ~/.zshrc entirely
 
-**Decision:** `Install-DollarSignPROFILE.sh` overwrites the target rc file in full, matching the behavior of the PowerShell installer which writes to `$PROFILE` directly.
+**Decision:** `install.sh` overwrites the target rc file in full, matching the behavior of the PowerShell installer which writes to `$PROFILE` directly.
 
 **Rationale:** Appending a `source` line creates a dependency on the installed file's location and leaves the original rc file's content in place, potentially conflicting with settings in the profile. Full replacement mirrors the PowerShell installer's contract and keeps the installed state predictable.
 
 **Safety:** A timestamped backup (`~/.bashrc.bak.<YYYYMMDDHHmmss>`) is written before any overwrite so the original is recoverable.
 
-**Rejected:** Appending `source ~/DollarSignPROFILE.bash` to the existing rc file; installing to `~/.config/DollarSignPROFILE/` and sourcing from there.
+**Rejected:** Appending `source ~/dotbashrc` to the existing rc file; installing to `~/.config/DollarSignPROFILE/` and sourcing from there.
 
 ---
 
