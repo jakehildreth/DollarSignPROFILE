@@ -23,12 +23,32 @@ try {
                 $caption = 'DollarSignPROFILE update available'
                 $message = 'A new version of your PowerShell profile is available. Apply it?'
                 $choices = @(
-                    [System.Management.Automation.Host.ChoiceDescription]::new('Yes, &always',        'Always apply updates silently.')
+                    [System.Management.Automation.Host.ChoiceDescription]::new('Yes, &always',         'Always apply updates silently.')
                     [System.Management.Automation.Host.ChoiceDescription]::new('Yes, &just this time', 'Apply this update; ask again next time.')
                     [System.Management.Automation.Host.ChoiceDescription]::new('No, &not this time',   'Skip this update; ask again next time.')
                     [System.Management.Automation.Host.ChoiceDescription]::new('No, ne&ver',           'Never check for or apply updates.')
+                    [System.Management.Automation.Host.ChoiceDescription]::new('&More details',        'Show a diff of the changes, then ask again.')
                 )
-                $result = $Host.UI.PromptForChoice($caption, $message, $choices, 2)
+                do {
+                    $result = $Host.UI.PromptForChoice($caption, $message, $choices, 2)
+                    if ($result -eq 4) {
+                        $localLines  = $localStripped -split "`n"
+                        $remoteLines = $remoteNormalized -split "`n"
+                        $diff = Compare-Object -ReferenceObject $localLines -DifferenceObject $remoteLines
+                        if ($diff) {
+                            Write-Host ''
+                            foreach ($entry in $diff) {
+                                if ($entry.SideIndicator -eq '<=') {
+                                    Write-Host "- $($entry.InputObject)" -ForegroundColor Red
+                                } else {
+                                    Write-Host "+ $($entry.InputObject)" -ForegroundColor Green
+                                }
+                            }
+                            Write-Host ''
+                        }
+                    }
+                } while ($result -eq 4)
+
                 switch ($result) {
                     0 {
                         Set-Content -Path $PROFILE -Value ("# DollarSignPROFILE:AutoUpdate=always`n" + $remoteContent) -Encoding UTF8
