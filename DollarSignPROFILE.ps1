@@ -1,4 +1,4 @@
-# Sometimes, you have to make a change.
+# Sometimes, you change back.
 #region Self-Update
 try {
     $selfUpdateUrl = 'https://raw.githubusercontent.com/jakehildreth/DollarSignPROFILE/refs/heads/main/DollarSignPROFILE.ps1'
