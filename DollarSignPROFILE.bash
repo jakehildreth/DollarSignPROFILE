@@ -1,0 +1,169 @@
+# DollarSignPROFILE — Bash Profile
+# https://github.com/jakehildreth/DollarSignPROFILE
+
+#region Self-Update
+__dollarsign_autoupdate() {
+    # Only run in interactive shells
+    [[ $- == *i* ]] || return 0
+
+    local self_update_url='https://raw.githubusercontent.com/jakehildreth/DollarSignPROFILE/refs/heads/main/DollarSignPROFILE.bash'
+    local self_path="${HOME}/.bashrc"
+
+    local local_content
+    local_content="$(cat "$self_path")" || return 0
+
+    local preference
+    preference="$(sed -n 's/^# DollarSignPROFILE:AutoUpdate=//p' "$self_path" | head -1)"
+
+    [[ "$preference" == 'never' ]] && return 0
+
+    local remote_content
+    remote_content="$(curl -fsSL --connect-timeout 3 "$self_update_url" 2>/dev/null)" || return 0
+
+    local local_stripped remote_stripped
+    local_stripped="$(printf '%s\n' "$local_content" | sed '/^# DollarSignPROFILE:AutoUpdate=/d')"
+    remote_stripped="$(printf '%s\n' "$remote_content" | sed '/^# DollarSignPROFILE:AutoUpdate=/d')"
+
+    [[ "$local_stripped" == "$remote_stripped" ]] && return 0
+
+    if [[ "$preference" == 'always' ]]; then
+        printf '# DollarSignPROFILE:AutoUpdate=always\n%s' "$remote_content" > "$self_path"
+        exec "$SHELL" -l
+        return 0
+    fi
+
+    printf '\nDollarSignPROFILE update available. Apply it?\n'
+    local PS3='Your choice: '
+    select _choice in 'Yes, always' 'Yes, just this time' 'No, not this time' 'No, never' 'More details'; do
+        case "$REPLY" in
+            1)
+                printf '# DollarSignPROFILE:AutoUpdate=always\n%s' "$remote_content" > "$self_path"
+                exec "$SHELL" -l
+                ;;
+            2)
+                printf '%s' "$remote_content" > "$self_path"
+                exec "$SHELL" -l
+                ;;
+            3)
+                break
+                ;;
+            4)
+                local stripped
+                stripped="$(sed '/^# DollarSignPROFILE:AutoUpdate=/d' "$self_path")"
+                printf '# DollarSignPROFILE:AutoUpdate=never\n%s' "$stripped" > "$self_path"
+                break
+                ;;
+            5)
+                printf '\n'
+                diff <(printf '%s\n' "$local_stripped") <(printf '%s\n' "$remote_stripped") \
+                    | while IFS= read -r line; do
+                        case "$line" in
+                            '<'*) printf '\033[31m%s\033[0m\n' "$line" ;;
+                            '>'*) printf '\033[32m%s\033[0m\n' "$line" ;;
+                            *)    printf '%s\n' "$line" ;;
+                        esac
+                    done
+                printf '\n'
+                ;;
+            *)
+                printf '[!] Invalid choice. Enter 1-5.\n'
+                ;;
+        esac
+    done
+    unset _choice
+}
+__dollarsign_autoupdate
+unset -f __dollarsign_autoupdate
+#endregion Self-Update
+
+# UTF-8 encoding
+export LANG='en_US.UTF-8'
+export LC_ALL='en_US.UTF-8'
+
+# Keybindings — interactive shells only
+if [[ $- == *i* ]]; then
+    bind '"\C-u": backward-kill-line'       # Ctrl+U        — clear to start of line
+    bind '"\C-[": revert-line'              # Escape        — revert line (macOS)
+    bind '"\e[1;3D": backward-word'         # Alt+Left
+    bind '"\e[1;3C": forward-word'          # Alt+Right
+    bind '"\e[1;5D": backward-word'         # Ctrl+Left
+    bind '"\e[1;5C": forward-word'          # Ctrl+Right
+    bind '"\e\177": backward-kill-word'     # Alt+Backspace
+    bind '"\C-_": backward-kill-word'       # Ctrl+Backspace (terminal-dependent)
+    bind '"\e[3;5~": kill-word'             # Ctrl+Delete
+    bind '"\e[3;3~": kill-word'             # Alt+Delete
+fi
+
+# new_credential — interactive credential prompt
+# Result stored in __CREDENTIAL_USER and __CREDENTIAL_PASS
+new_credential() {
+    printf '\nBash credential request\nEnter your credentials.\n\n'
+    local user pass
+    read -rp 'User: ' user
+    read -rsp "Password for user ${user}: " pass
+    printf '\n'
+    export __CREDENTIAL_USER="$user"
+    export __CREDENTIAL_PASS="$pass"
+}
+
+# Custom prompt — updates on every command via PROMPT_COMMAND
+shopt -s checkwinsize
+__dollarsign_prompt() {
+    local git_branch
+    git_branch="$(git rev-parse --abbrev-ref HEAD 2>/dev/null)"
+    local path_display="${PWD/#$HOME/~}"
+    local branch_str=''
+    [[ -n "$git_branch" ]] && branch_str=" [${git_branch}]"
+    local gt=''
+    local i
+    for ((i = 0; i < SHLVL; i++)); do gt+='>'; done
+    PS1=$'\n'"[${COLUMNS}"$'\xc3\x97'"${LINES}] ${path_display}${branch_str}"$'\n'"bash${gt} "
+}
+PROMPT_COMMAND='__dollarsign_prompt'
+
+# get_ip_address — cross-platform IP address retrieval
+get_ip_address() {
+    if [[ "$(uname -s)" == 'Darwin' ]]; then
+        local i ip
+        for i in $(ifconfig -l); do
+            [[ "$i" == 'lo0' ]] && continue
+            ip="$(ifconfig "$i" 2>/dev/null | awk '/inet [1-9]/{print $2; exit}')"
+            [[ -n "$ip" ]] && printf '%s: %s\n' "$i" "$ip"
+        done
+    elif command -v ip &>/dev/null; then
+        ip addr show | awk '
+            /^[0-9]+: / {
+                split($2, a, "@")
+                iface = a[1]
+                sub(/:$/, "", iface)
+            }
+            /inet [1-9]/ && iface != "lo" {
+                addr = $2
+                sub(/\/.*/, "", addr)
+                print iface ": " addr
+            }
+        '
+    else
+        printf '[!] No IP address retrieval method found.\n' >&2
+    fi
+}
+
+# gai — copy AI instruction URLs to clipboard
+gai() {
+    local urls
+    urls='Please read and follow my personal instructions:
+https://raw.githubusercontent.com/jakehildreth/jakehildreth/refs/heads/main/.github/copilot-instructions.md
+then read and follow PowerShell best practices:
+https://raw.githubusercontent.com/github/awesome-copilot/refs/heads/main/instructions/powershell.instructions.md
+then read and follow Pester testing best practices:
+https://raw.githubusercontent.com/github/awesome-copilot/refs/heads/main/instructions/powershell-pester-5.instructions.md'
+    if [[ "$(uname -s)" == 'Darwin' ]]; then
+        printf '%s' "$urls" | pbcopy
+    elif command -v xclip &>/dev/null; then
+        printf '%s' "$urls" | xclip -selection clipboard
+    elif command -v xsel &>/dev/null; then
+        printf '%s' "$urls" | xsel --clipboard --input
+    else
+        printf '[!] No clipboard tool found. Copy the following manually:\n\n%s\n' "$urls"
+    fi
+}
