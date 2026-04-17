@@ -23,19 +23,19 @@ try {
                 $message = 'A new version of your PowerShell profile is available. Apply it?'
                 $choices = @(
                     [System.Management.Automation.Host.ChoiceDescription]::new('Yes, &always',         'Always apply updates silently.')
-                    [System.Management.Automation.Host.ChoiceDescription]::new('Yes, &just this time', 'Apply this update; ask again next time.')
+                    [System.Management.Automation.Host.ChoiceDescription]::new('&Yes, just this time', 'Apply this update; ask again next time.')
                     [System.Management.Automation.Host.ChoiceDescription]::new('No, &not this time',   'Skip this update; ask again next time.')
                     [System.Management.Automation.Host.ChoiceDescription]::new('No, ne&ver',           'Never check for or apply updates.')
                     [System.Management.Automation.Host.ChoiceDescription]::new('&More details',        'Show a diff of the changes, then ask again.')
                 )
                 do {
-                    $result = $Host.UI.PromptForChoice($caption, $message, $choices, 2)
+                    $result = $Host.UI.PromptForChoice($caption, $message, $choices, 1)
                     if ($result -eq 4) {
                         $localLines  = $localStripped -split "`n"
                         $remoteLines = $remoteNormalized -split "`n"
                         $diff = Compare-Object -ReferenceObject $localLines -DifferenceObject $remoteLines
+                        Write-Host ''
                         if ($diff) {
-                            Write-Host ''
                             foreach ($entry in $diff) {
                                 if ($entry.SideIndicator -eq '<=') {
                                     Write-Host "- $($entry.InputObject)" -ForegroundColor Red
@@ -43,10 +43,12 @@ try {
                                     Write-Host "+ $($entry.InputObject)" -ForegroundColor Green
                                 }
                             }
-                            Write-Host ''
+                        } else {
+                            Write-Host '[i] No line-level differences detected.' -ForegroundColor Cyan
                         }
+                        Write-Host ''
                     }
-                } while ($result -eq 4)
+                } while ($result -eq 4 -or $result -lt 0)
 
                 switch ($result) {
                     0 {
