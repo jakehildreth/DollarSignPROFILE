@@ -20,7 +20,7 @@
     Source: https://github.com/jakehildreth/DollarSignPROFILE
 #>
 
-$SourceUri = 'https://raw.githubusercontent.com/jakehildreth/DollarSignPROFILE/refs/heads/main/DollarSignPROFILE.ps1'
+$SourceUri = 'https://raw.githubusercontent.com/jakehildreth/DollarSignPROFILE/refs/heads/main/profiles/DollarSignPROFILE.ps1'
 $ErrorActionPreference = 'Stop'
 
 try {
