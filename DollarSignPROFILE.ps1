@@ -1,3 +1,57 @@
+#region Self-Update
+try {
+    $selfUpdateUrl = 'https://raw.githubusercontent.com/jakehildreth/DollarSignPROFILE/refs/heads/main/DollarSignPROFILE.ps1'
+    $localContent  = [System.IO.File]::ReadAllText($PROFILE)
+
+    $preference = $null
+    if ($localContent -match '(?m)^# DollarSignPROFILE:AutoUpdate=(\w+)') {
+        $preference = $Matches[1]
+    }
+
+    if ($preference -ne 'never') {
+        $localStripped    = ($localContent -replace '(?m)^# DollarSignPROFILE:AutoUpdate=\w+(\r?\n)?', '').Trim() -replace '\r\n', "`n"
+        $remoteContent    = (Invoke-WebRequest -Uri $selfUpdateUrl -UseBasicParsing).Content
+        $remoteNormalized = $remoteContent.Trim() -replace '\r\n', "`n"
+
+        if ($localStripped -ne $remoteNormalized) {
+            if ($preference -eq 'always') {
+                Set-Content -Path $PROFILE -Value ("# DollarSignPROFILE:AutoUpdate=always`n" + $remoteContent) -Encoding UTF8
+                . $PROFILE
+                return
+            } else {
+                $caption = 'DollarSignPROFILE update available'
+                $message = 'A new version of your PowerShell profile is available. Apply it?'
+                $choices = @(
+                    [System.Management.Automation.Host.ChoiceDescription]::new('Yes, &always',        'Always apply updates silently.')
+                    [System.Management.Automation.Host.ChoiceDescription]::new('Yes, &just this time', 'Apply this update; ask again next time.')
+                    [System.Management.Automation.Host.ChoiceDescription]::new('No, &not this time',   'Skip this update; ask again next time.')
+                    [System.Management.Automation.Host.ChoiceDescription]::new('No, ne&ver',           'Never check for or apply updates.')
+                )
+                $result = $Host.UI.PromptForChoice($caption, $message, $choices, 2)
+                switch ($result) {
+                    0 {
+                        Set-Content -Path $PROFILE -Value ("# DollarSignPROFILE:AutoUpdate=always`n" + $remoteContent) -Encoding UTF8
+                        . $PROFILE
+                        return
+                    }
+                    1 {
+                        Set-Content -Path $PROFILE -Value $remoteContent -Encoding UTF8
+                        . $PROFILE
+                        return
+                    }
+                    3 {
+                        $neverContent = "# DollarSignPROFILE:AutoUpdate=never`n" + ($localContent -replace '(?m)^# DollarSignPROFILE:AutoUpdate=\w+(\r?\n)?', '')
+                        Set-Content -Path $PROFILE -Value $neverContent -Encoding UTF8
+                    }
+                }
+            }
+        }
+    }
+} catch {
+    # Network unavailable or other error - continue loading profile as-is
+}
+#endregion Self-Update
+
 [Console]::OutputEncoding = [Text.Encoding]::UTF8
 
 # Enable Ctrl+U to clear line on Windows
