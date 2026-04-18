@@ -1,3 +1,5 @@
+# DollarSignPROFILE
+# https://github.com/jakehildreth/DollarSignPROFILE
 
 #region Self-Update
 try {
