@@ -56,8 +56,10 @@ __dollarsign_precmd() {
     local branch_str=''
     [[ -n "$git_branch" ]] && branch_str=" [${git_branch}]"
     local gt=''
+    local shlvl_depth=$SHLVL
+    [[ -o login ]] && (( shlvl_depth > 1 )) && (( shlvl_depth-- ))
     local i
-    for ((i = 0; i < SHLVL; i++)); do gt+='>'; done
+    for ((i = 0; i < shlvl_depth; i++)); do gt+='>'; done
     PROMPT=$'\n'"[${COLUMNS}"$'\xc3\x97'"${LINES}] ${path_display}${branch_str}"$'\n'"zsh${gt} "
 }
 add-zsh-hook precmd __dollarsign_precmd

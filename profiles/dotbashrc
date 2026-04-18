@@ -49,8 +49,10 @@ __dollarsign_prompt() {
     local branch_str=''
     [[ -n "$git_branch" ]] && branch_str=" [${git_branch}]"
     local gt=''
+    local shlvl_depth=$SHLVL
+    shopt -q login_shell && (( shlvl_depth > 1 )) && (( shlvl_depth-- ))
     local i
-    for ((i = 0; i < SHLVL; i++)); do gt+='>'; done
+    for ((i = 0; i < shlvl_depth; i++)); do gt+='>'; done
     PS1=$'\n'"[${COLUMNS}"$'\xc3\x97'"${LINES}] ${path_display}${branch_str}"$'\n'"bash${gt} "
 }
 PROMPT_COMMAND='__dollarsign_prompt'
