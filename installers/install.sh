@@ -1,6 +1,5 @@
 #!/usr/bin/env bash
 # install.sh
-# Installs DollarSignPROFILE to the current user's bash or zsh profile.
 #
 # .SYNOPSIS
 #   Installs DollarSignPROFILE to the current user's bash or zsh rc file.
@@ -11,7 +10,10 @@
 #   Target shell is determined from the invoking shell ($PPID). Only bash and zsh are supported.
 #
 # .EXAMPLE
-#   curl -fsSL https://raw.githubusercontent.com/jakehildreth/profile/refs/heads/main/installers/install.sh | bash
+#   curl profile.jakehildreth.com | $SHELL
+#
+# .EXAMPLE
+#   curl -fsSL https://raw.githubusercontent.com/jakehildreth/profile/refs/heads/main/installers/install.sh | $SHELL
 #
 # .NOTES
 #   Source: https://github.com/jakehildreth/profile
@@ -63,7 +65,7 @@ _install_for_shell() {
 
     if [[ -f "$rc_file" ]]; then
         local is_dollarsign=0
-        grep -q 'DollarSignPROFILE' "$rc_file" 2>/dev/null && is_dollarsign=1 || true
+        grep -qE 'dot(bash|zsh)rc' "$rc_file" 2>/dev/null && is_dollarsign=1 || true
 
         local preference
         preference="$(sed -n 's/^# DollarSignPROFILE:AutoUpdate=//p' "$rc_file" | head -1)"
@@ -90,7 +92,7 @@ _install_for_shell() {
             if [[ "$is_dollarsign" -eq 1 ]]; then
                 __ask "A new version of your $(basename "$rc_file") is available. Update it?"
             else
-                __ask "$(basename "$rc_file") already exists and does not appear to be a DollarSignPROFILE install. Overwrite it?"
+                __ask "$(basename "$rc_file") already exists and does not appear to be a dot*shrc install. Overwrite it?"
             fi
 
             while true; do
