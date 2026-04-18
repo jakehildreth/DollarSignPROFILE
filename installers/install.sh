@@ -157,7 +157,7 @@ _install_for_shell() {
     exec "$shell_name" -l
 }
 
-_invoking_shell="$(basename "$(ps -p $PPID -o comm= 2>/dev/null)")"
+_invoking_shell="$(ps -p $PPID -o comm= 2>/dev/null | sed 's|.*/||; s/^-//')"
 
 case "$_invoking_shell" in
     bash)  _install_for_shell 'bash' "$_BASH_PROFILE_URL" "$HOME/.bashrc" ;;
