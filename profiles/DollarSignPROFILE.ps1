@@ -1,77 +1,12 @@
-#bleh
+
 #region Self-Update
 try {
-    $selfUpdateUrl = 'https://raw.githubusercontent.com/jakehildreth/DollarSignPROFILE/refs/heads/main/DollarSignPROFILE.ps1'
-    $localContent  = [System.IO.File]::ReadAllText($PROFILE)
-
-    $preference = $null
-    if ($localContent -match '(?m)^# DollarSignPROFILE:AutoUpdate=(\w+)') {
-        $preference = $Matches[1]
-    }
-
-    if ($preference -ne 'never') {
-        $localStripped    = ($localContent -replace '(?m)^# DollarSignPROFILE:AutoUpdate=\w+(\r?\n)?', '').Trim() -replace '\r\n', "`n"
-        $remoteContent    = (Invoke-WebRequest -Uri $selfUpdateUrl -UseBasicParsing).Content
-        $remoteNormalized = $remoteContent.Trim() -replace '\r\n', "`n"
-
-        if ($localStripped -ne $remoteNormalized) {
-            if ($preference -eq 'always') {
-                Set-Content -Path $PROFILE -Value ("# DollarSignPROFILE:AutoUpdate=always`n" + $remoteContent) -Encoding UTF8
-                . $PROFILE
-                return
-            } else {
-                $caption = 'DollarSignPROFILE update available'
-                $message = 'A new version of your PowerShell profile is available. Apply it?'
-                $choices = @(
-                    [System.Management.Automation.Host.ChoiceDescription]::new('Yes, &always',         'Always apply updates silently.')
-                    [System.Management.Automation.Host.ChoiceDescription]::new('&Yes, just this time', 'Apply this update; ask again next time.')
-                    [System.Management.Automation.Host.ChoiceDescription]::new('No, &not this time',   'Skip this update; ask again next time.')
-                    [System.Management.Automation.Host.ChoiceDescription]::new('No, ne&ver',           'Never check for or apply updates.')
-                    [System.Management.Automation.Host.ChoiceDescription]::new('&More details',        'Show a diff of the changes, then ask again.')
-                )
-                do {
-                    $result = $Host.UI.PromptForChoice($caption, $message, $choices, 1)
-                    if ($result -eq 4) {
-                        $localLines  = $localStripped -split "`n"
-                        $remoteLines = $remoteNormalized -split "`n"
-                        $diff = Compare-Object -ReferenceObject $localLines -DifferenceObject $remoteLines
-                        Write-Host ''
-                        if ($diff) {
-                            foreach ($entry in $diff) {
-                                if ($entry.SideIndicator -eq '<=') {
-                                    Write-Host "- $($entry.InputObject)" -ForegroundColor Red
-                                } else {
-                                    Write-Host "+ $($entry.InputObject)" -ForegroundColor Green
-                                }
-                            }
-                        } else {
-                            Write-Host '[i] No line-level differences detected.' -ForegroundColor Cyan
-                        }
-                        Write-Host ''
-                    }
-                } while ($result -eq 4 -or $result -lt 0)
-
-                switch ($result) {
-                    0 {
-                        Set-Content -Path $PROFILE -Value ("# DollarSignPROFILE:AutoUpdate=always`n" + $remoteContent) -Encoding UTF8
-                        . $PROFILE
-                        return
-                    }
-                    1 {
-                        Set-Content -Path $PROFILE -Value $remoteContent -Encoding UTF8
-                        . $PROFILE
-                        return
-                    }
-                    3 {
-                        $neverContent = "# DollarSignPROFILE:AutoUpdate=never`n" + ($localContent -replace '(?m)^# DollarSignPROFILE:AutoUpdate=\w+(\r?\n)?', '')
-                        Set-Content -Path $PROFILE -Value $neverContent -Encoding UTF8
-                    }
-                }
-            }
-        }
-    }
+    $__installerContent = (Invoke-WebRequest -Uri 'https://raw.githubusercontent.com/jakehildreth/DollarSignPROFILE/refs/heads/main/installers/Install-DollarSignPROFILE.ps1' -UseBasicParsing -TimeoutSec 3).Content
+    Invoke-Expression $__installerContent
 } catch {
-    # Network unavailable or other error - continue loading profile as-is
+    # Network unavailable or timeout — continue loading profile as-is
+} finally {
+    Remove-Variable -Name __installerContent -ErrorAction SilentlyContinue
 }
 #endregion Self-Update
 

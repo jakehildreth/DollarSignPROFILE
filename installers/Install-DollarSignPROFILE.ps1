@@ -1,11 +1,13 @@
 <#
 .SYNOPSIS
-    Installs DollarSignPROFILE to the current user's PowerShell profile.
+    Installs or updates DollarSignPROFILE to the current user's PowerShell profile.
 
 .DESCRIPTION
     Downloads DollarSignPROFILE.ps1 from GitHub and writes it to $PROFILE,
-    creating the parent directory if needed. Then dot-sources the profile
-    to make it immediately active in the current session.
+    creating the parent directory if needed. Respects the AutoUpdate preference
+    stored in $PROFILE (never/always). If a previous install is detected and the
+    content differs, prompts the user before overwriting. Creates a timestamped
+    backup before any write. Dot-sources the profile after a successful install.
 
 .EXAMPLE
     iwr profile.jakehildreth.com | iex
@@ -20,23 +22,127 @@
     Source: https://github.com/jakehildreth/DollarSignPROFILE
 #>
 
-$SourceUri = 'https://raw.githubusercontent.com/jakehildreth/DollarSignPROFILE/refs/heads/main/profiles/DollarSignPROFILE.ps1'
 $ErrorActionPreference = 'Stop'
 
-try {
-    $ProfileContent = (Invoke-WebRequest -Uri $SourceUri).Content
-    Write-Host '[i] DollarSignPROFILE.ps1 downloaded' -ForegroundColor Cyan
+function Write-Info    ($msg) { Write-Host "[i] $msg" -ForegroundColor Cyan }
+function Write-Ok      ($msg) { Write-Host "[+] $msg" -ForegroundColor Green }
+function Write-Fail    ($msg) { Write-Host "[x] $msg" -ForegroundColor Red }
+function Write-Ask     ($msg) { Write-Host "[?] $msg" -ForegroundColor Blue }
 
-    $ProfileDirectory = Split-Path -Path $PROFILE -Parent
-    if (-not (Test-Path -Path $ProfileDirectory)) {
-        New-Item -ItemType Directory -Path $ProfileDirectory -Force | Out-Null
+$sourceUri = 'https://raw.githubusercontent.com/jakehildreth/DollarSignPROFILE/refs/heads/main/profiles/DollarSignPROFILE.ps1'
+
+try {
+    $remoteContent = (Invoke-WebRequest -Uri $sourceUri -UseBasicParsing).Content
+} catch {
+    Write-Fail "Download failed ($sourceUri). Verify the URL is reachable and the file exists."
+    return
+}
+
+$profilePath = $PROFILE
+
+# --- Existing profile ---
+if (Test-Path -Path $profilePath) {
+    $localContent = [System.IO.File]::ReadAllText($profilePath)
+
+    $preference = $null
+    if ($localContent -match '(?m)^# DollarSignPROFILE:AutoUpdate=(\w+)') {
+        $preference = $Matches[1]
     }
 
-    Set-Content -Path $PROFILE -Value $ProfileContent -Encoding UTF8
-    Write-Host '[i] $PROFILE written' -ForegroundColor Cyan
+    if ($preference -eq 'never') {
+        Write-Info 'New PowerShell profile available. Skipping.'
+        Write-Info "To change this behavior, remove this line from your profile:"
+        Write-Host "`n  # DollarSignPROFILE:AutoUpdate=never`n"
+        return
+    }
 
-    . $PROFILE
-    Write-Host '[+] $PROFILE loaded' -ForegroundColor Green
-} catch {
-    Write-Error "[x] Installation failed: $_"
+    $localStripped  = ($localContent  -replace '(?m)^# DollarSignPROFILE:AutoUpdate=\w+(\r?\n)?', '').Trim() -replace '\r\n', "`n"
+    $remoteStripped = ($remoteContent -replace '(?m)^# DollarSignPROFILE:AutoUpdate=\w+(\r?\n)?', '').Trim() -replace '\r\n', "`n"
+
+    if ($localStripped -eq $remoteStripped) {
+        return
+    }
+
+    $writeHeader = $null
+
+    if ($preference -eq 'always') {
+        $writeHeader = 'always'
+    } else {
+        $isDollarSign = $localContent -match 'DollarSignPROFILE'
+        if ($isDollarSign) {
+            Write-Ask "A new version of your $(Split-Path $profilePath -Leaf) is available. Update it?"
+        } else {
+            Write-Ask "$(Split-Path $profilePath -Leaf) already exists and does not appear to be a DollarSignPROFILE install. Overwrite it?"
+        }
+
+        $caption = ''
+        $message = ''
+        $choices = @(
+            [System.Management.Automation.Host.ChoiceDescription]::new('Yes, &always',         'Always apply updates silently.')
+            [System.Management.Automation.Host.ChoiceDescription]::new('&Yes, just this time', 'Apply this update; ask again next time.')
+            [System.Management.Automation.Host.ChoiceDescription]::new('No, &not this time',   'Skip this update; ask again next time.')
+            [System.Management.Automation.Host.ChoiceDescription]::new('No, ne&ver',           'Never check for or apply updates.')
+            [System.Management.Automation.Host.ChoiceDescription]::new('&More details',        'Show a diff of the changes, then ask again.')
+        )
+
+        do {
+            $result = $Host.UI.PromptForChoice($caption, $message, $choices, 1)
+            if ($result -eq 4) {
+                $localLines  = $localStripped  -split "`n"
+                $remoteLines = $remoteStripped -split "`n"
+                $diff = Compare-Object -ReferenceObject $localLines -DifferenceObject $remoteLines
+                Write-Host ''
+                if ($diff) {
+                    foreach ($entry in $diff) {
+                        if ($entry.SideIndicator -eq '<=') {
+                            Write-Host "- $($entry.InputObject)" -ForegroundColor Red
+                        } else {
+                            Write-Host "+ $($entry.InputObject)" -ForegroundColor Green
+                        }
+                    }
+                } else {
+                    Write-Info 'No line-level differences detected.'
+                }
+                Write-Host ''
+            }
+        } while ($result -eq 4)
+
+        switch ($result) {
+            0 { $writeHeader = 'always' }
+            1 { $writeHeader = $null }
+            2 { Write-Info 'Installation skipped.'; return }
+            3 {
+                $stripped = $localContent -replace '(?m)^# DollarSignPROFILE:AutoUpdate=\w+(\r?\n)?', ''
+                Set-Content -Path $profilePath -Value ("# DollarSignPROFILE:AutoUpdate=never`n" + $stripped) -Encoding UTF8
+                Write-Info 'Installation skipped. You will not be prompted again.'
+                return
+            }
+        }
+    }
+
+    Write-Info "Installing PowerShell profile → $profilePath"
+    $backup = "$profilePath.bak.$(Get-Date -Format 'yyyyMMddHHmmss')"
+    try {
+        Copy-Item -Path $profilePath -Destination $backup
+        Write-Info "Backup created: $backup"
+    } catch {
+        Write-Fail "Could not create backup of $profilePath. Aborting."
+        return
+    }
+
+    $finalContent = if ($writeHeader) { "# DollarSignPROFILE:AutoUpdate=$writeHeader`n$remoteContent" } else { $remoteContent }
+    Set-Content -Path $profilePath -Value $finalContent -Encoding UTF8
+
+} else {
+    # --- Fresh install ---
+    Write-Info "Installing PowerShell profile → $profilePath"
+    $profileDir = Split-Path -Path $profilePath -Parent
+    if (-not (Test-Path -Path $profileDir)) {
+        New-Item -ItemType Directory -Path $profileDir -Force | Out-Null
+    }
+    Set-Content -Path $profilePath -Value $remoteContent -Encoding UTF8
 }
+
+Write-Ok 'PowerShell profile written.'
+. $profilePath
+Write-Ok '$PROFILE loaded.'
