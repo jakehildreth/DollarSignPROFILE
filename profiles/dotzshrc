@@ -23,6 +23,15 @@ for __zas_path in \
 done
 unset __zas_path
 
+# zsh-syntax-highlighting — must be sourced last among plugins
+for __zsh_path in \
+    "$(brew --prefix 2>/dev/null)/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh" \
+    '/usr/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh' \
+    '/usr/share/zsh/plugins/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh'; do
+    [[ -f "$__zsh_path" ]] && { source "$__zsh_path"; break; }
+done
+unset __zsh_path
+
 # Keybindings
 bindkey '^U'      backward-kill-line      # Ctrl+U        — clear to start of line
 bindkey '^[^['    kill-whole-line         # Escape Escape — clear line (safe; avoids breaking alt sequences)
