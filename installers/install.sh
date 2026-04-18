@@ -81,7 +81,7 @@ _install_for_shell() {
             PS3='Your choice [1-5, default 2]: '
             while true; do
                 select _choice in 'Yes, always' 'Yes, just this time' 'No, not this time' 'No, never' 'More details'; do
-                    [[ -z "$REPLY" ]] && REPLY=2
+                    if [[ -z "$REPLY" ]]; then REPLY=2; fi
                     case "$REPLY" in
                     1) _write_header='always'; break 2 ;;
                     2) break 2 ;;
@@ -98,7 +98,7 @@ _install_for_shell() {
                         local _diff_output
                         local_stripped="$(sed '/^# DollarSignPROFILE:AutoUpdate=/d' "$rc_file" | tr -d '\r' | sed '/./,$!d')"
                         remote_stripped="$(printf '%s\n' "$content" | sed '/^# DollarSignPROFILE:AutoUpdate=/d' | tr -d '\r' | sed '/./,$!d')"
-                        _diff_output="$(diff <(printf '%s\n' "$local_stripped") <(printf '%s\n' "$remote_stripped"))"
+                        _diff_output="$(diff <(printf '%s\n' "$local_stripped") <(printf '%s\n' "$remote_stripped"))" || true
                         if [[ -z "$_diff_output" ]]; then
                             __info "No differences between installed and remote profile."
                         else
