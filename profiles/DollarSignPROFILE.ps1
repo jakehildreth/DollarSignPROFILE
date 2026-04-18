@@ -1,9 +1,9 @@
 # DollarSignPROFILE
-# https://github.com/jakehildreth/DollarSignPROFILE
+# https://github.com/jakehildreth/profile
 
 #region Self-Update
 try {
-    $__installerContent = (Invoke-WebRequest -Uri 'https://raw.githubusercontent.com/jakehildreth/DollarSignPROFILE/refs/heads/main/installers/Install-DollarSignPROFILE.ps1' -UseBasicParsing -TimeoutSec 3).Content
+    $__installerContent = (Invoke-WebRequest -Uri 'https://raw.githubusercontent.com/jakehildreth/profile/refs/heads/main/installers/Install-DollarSignPROFILE.ps1' -UseBasicParsing -TimeoutSec 3).Content
     Invoke-Expression $__installerContent
 } catch {
     # Network unavailable or timeout — continue loading profile as-is

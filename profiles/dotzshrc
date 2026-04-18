@@ -1,10 +1,10 @@
 # dotzshrc
-# https://github.com/jakehildreth/DollarSignPROFILE
+# https://github.com/jakehildreth/profile
 
 #region Self-Update
 __dollarsign_autoupdate() {
     [[ -o interactive ]] || return 0
-    bash <(curl -fsSL --connect-timeout 3 'https://raw.githubusercontent.com/jakehildreth/DollarSignPROFILE/refs/heads/main/installers/install.sh' 2>/dev/null)
+    bash <(curl -fsSL --connect-timeout 3 'https://raw.githubusercontent.com/jakehildreth/profile/refs/heads/main/installers/install.sh' 2>/dev/null)
 }
 __dollarsign_autoupdate
 unset -f __dollarsign_autoupdate

@@ -11,17 +11,17 @@
 #   Target shell is determined from the invoking shell ($PPID). Only bash and zsh are supported.
 #
 # .EXAMPLE
-#   curl -fsSL https://raw.githubusercontent.com/jakehildreth/DollarSignPROFILE/refs/heads/main/installers/install.sh | bash
+#   curl -fsSL https://raw.githubusercontent.com/jakehildreth/profile/refs/heads/main/installers/install.sh | bash
 #
 # .NOTES
-#   Source: https://github.com/jakehildreth/DollarSignPROFILE
+#   Source: https://github.com/jakehildreth/profile
 
 set -euo pipefail
 export LANG="${LANG:-en_US.UTF-8}"
 export LC_ALL="${LC_ALL:-en_US.UTF-8}"
 
-readonly _BASH_PROFILE_URL='https://raw.githubusercontent.com/jakehildreth/DollarSignPROFILE/refs/heads/main/profiles/dotbashrc'
-readonly _ZSH_PROFILE_URL='https://raw.githubusercontent.com/jakehildreth/DollarSignPROFILE/refs/heads/main/profiles/dotzshrc'
+readonly _BASH_PROFILE_URL='https://raw.githubusercontent.com/jakehildreth/profile/refs/heads/main/profiles/dotbashrc'
+readonly _ZSH_PROFILE_URL='https://raw.githubusercontent.com/jakehildreth/profile/refs/heads/main/profiles/dotzshrc'
 
 readonly _CYAN='\033[0;36m'
 readonly _GREEN='\033[0;32m'
