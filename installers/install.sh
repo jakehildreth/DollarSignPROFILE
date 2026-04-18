@@ -34,6 +34,22 @@ __success() { printf "${_GREEN}[+] %s${_NC}\n" "$*"; }
 __error()   { printf "${_RED}[x] %s${_NC}\n" "$*" >&2; }
 __ask()     { printf "${_BLUE}[?] %s${_NC}\n" "$*"; }
 
+_ensure_bash_profile_sources_bashrc() {
+    local bash_profile="$HOME/.bash_profile"
+    local source_line='[[ -f ~/.bashrc ]] && source ~/.bashrc'
+
+    if [[ -f "$bash_profile" ]]; then
+        if grep -q '\.bashrc' "$bash_profile" 2>/dev/null; then
+            return 0
+        fi
+        printf '\n# Source .bashrc for interactive shells\n%s\n' "$source_line" >> "$bash_profile"
+        __info "Added .bashrc source to ${bash_profile}"
+    else
+        printf '# Source .bashrc for interactive shells\n%s\n' "$source_line" > "$bash_profile"
+        __info "Created ${bash_profile} to source .bashrc"
+    fi
+}
+
 _install_for_shell() {
     local shell_name="$1"
     local profile_url="$2"
@@ -77,50 +93,48 @@ _install_for_shell() {
                 __ask "$(basename "$rc_file") already exists and does not appear to be a DollarSignPROFILE install. Overwrite it?"
             fi
 
-            local _choice
-            PS3='Your choice [1-5, default 2]: '
             while true; do
-                select _choice in 'Yes, always' 'Yes, just this time' 'No, not this time' 'No, never' 'More details'; do
-                    if [[ -z "$REPLY" ]]; then REPLY=2; fi
-                    case "$REPLY" in
-                    1) _write_header='always'; break 2 ;;
-                    2) break 2 ;;
-                    3) __info 'Installation skipped.'; unset _choice _write_header; return 0 ;;
-                    4)
-                        local _stripped
-                        _stripped="$(sed '/^# DollarSignPROFILE:AutoUpdate=/d' "$rc_file")"
-                        printf '# DollarSignPROFILE:AutoUpdate=never\n%s\n' "$_stripped" > "$rc_file"
-                        __info 'Installation skipped. You will not be prompted again.'
-                        unset _choice _write_header _stripped
-                        return 0
-                        ;;
-                    5)
-                        local _diff_output
-                        local_stripped="$(sed '/^# DollarSignPROFILE:AutoUpdate=/d' "$rc_file" | tr -d '\r' | sed '/./,$!d')"
-                        remote_stripped="$(printf '%s\n' "$content" | sed '/^# DollarSignPROFILE:AutoUpdate=/d' | tr -d '\r' | sed '/./,$!d')"
-                        _diff_output="$(diff <(printf '%s\n' "$local_stripped") <(printf '%s\n' "$remote_stripped"))" || true
-                        if [[ -z "$_diff_output" ]]; then
-                            __info "No differences between installed and remote profile."
-                        else
-                            printf '\n'
-                            printf '%s\n' "$_diff_output" \
-                                | while IFS= read -r line; do
-                                    case "$line" in
-                                        '<'*) printf '\033[31m%s\033[0m\n' "$line" ;;
-                                        '>'*) printf '\033[32m%s\033[0m\n' "$line" ;;
-                                        *)    printf '%s\n' "$line" ;;
-                                    esac
-                                done
-                            printf '\n'
-                        fi
-                        unset _diff_output
-                        break
-                        ;;
-                    *) printf '[!] Invalid choice. Enter 1-5.\n' ;;
+                printf '1) Yes, always\t\t3) No, not this time\t5) More details\n'
+                printf '2) Yes, just this time\t4) No, never\n'
+                printf 'Your choice [1-5, default 2]: '
+                read -r REPLY
+                if [[ -z "$REPLY" ]]; then REPLY=2; fi
+                case "$REPLY" in
+                1) _write_header='always'; break ;;
+                2) break ;;
+                3) __info 'Installation skipped.'; unset _write_header; return 0 ;;
+                4)
+                    local _stripped
+                    _stripped="$(sed '/^# DollarSignPROFILE:AutoUpdate=/d' "$rc_file")"
+                    printf '# DollarSignPROFILE:AutoUpdate=never\n%s\n' "$_stripped" > "$rc_file"
+                    __info 'Installation skipped. You will not be prompted again.'
+                    unset _write_header _stripped
+                    return 0
+                    ;;
+                5)
+                    local _diff_output
+                    local_stripped="$(sed '/^# DollarSignPROFILE:AutoUpdate=/d' "$rc_file" | tr -d '\r' | sed '/./,$!d')"
+                    remote_stripped="$(printf '%s\n' "$content" | sed '/^# DollarSignPROFILE:AutoUpdate=/d' | tr -d '\r' | sed '/./,$!d')"
+                    _diff_output="$(diff <(printf '%s\n' "$local_stripped") <(printf '%s\n' "$remote_stripped"))" || true
+                    if [[ -z "$_diff_output" ]]; then
+                        __info "No differences between installed and remote profile."
+                    else
+                        printf '\n'
+                        printf '%s\n' "$_diff_output" \
+                            | while IFS= read -r line; do
+                                case "$line" in
+                                    '<'*) printf '\033[31m%s\033[0m\n' "$line" ;;
+                                    '>'*) printf '\033[32m%s\033[0m\n' "$line" ;;
+                                    *)    printf '%s\n' "$line" ;;
+                                esac
+                            done
+                        printf '\n'
+                    fi
+                    unset _diff_output
+                    ;;
+                *) printf '[!] Invalid choice. Enter 1-5.\n' ;;
                 esac
             done
-        done
-        unset _choice
         fi  # end: preference != always
 
         __info "Installing ${shell_name} profile → ${rc_file}"
@@ -154,7 +168,10 @@ _install_for_shell() {
     fi
 
     __success "${shell_name} profile written to ${rc_file}."
-    exec "$shell_name" -l
+    if [[ "$shell_name" == 'bash' ]]; then
+        _ensure_bash_profile_sources_bashrc
+    fi
+    exec "$shell_name" -i
 }
 
 _invoking_shell="$(ps -p $PPID -o comm= 2>/dev/null | sed 's|.*/||; s/^-//')"
