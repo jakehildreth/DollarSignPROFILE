@@ -32,7 +32,7 @@ function Write-Ask     ($msg) { Write-Host "[?] $msg" -ForegroundColor Blue }
 $sourceUri = 'https://raw.githubusercontent.com/jakehildreth/DollarSignPROFILE/refs/heads/main/profiles/DollarSignPROFILE.ps1'
 
 try {
-    $remoteContent = (Invoke-WebRequest -Uri $sourceUri -UseBasicParsing).Content
+    $remoteContent = (Invoke-WebRequest -Uri $sourceUri -UseBasicParsing -TimeoutSec 10).Content
 } catch {
     Write-Fail "Download failed ($sourceUri). Verify the URL is reachable and the file exists."
     return
@@ -131,7 +131,12 @@ if (Test-Path -Path $profilePath) {
     }
 
     $finalContent = if ($writeHeader) { "# DollarSignPROFILE:AutoUpdate=$writeHeader`n$remoteContent" } else { $remoteContent }
-    Set-Content -Path $profilePath -Value $finalContent -Encoding UTF8
+    try {
+        Set-Content -Path $profilePath -Value $finalContent -Encoding UTF8
+    } catch {
+        Write-Fail "Could not write to $profilePath."
+        return
+    }
 
 } else {
     # --- Fresh install ---
@@ -140,7 +145,12 @@ if (Test-Path -Path $profilePath) {
     if (-not (Test-Path -Path $profileDir)) {
         New-Item -ItemType Directory -Path $profileDir -Force | Out-Null
     }
-    Set-Content -Path $profilePath -Value $remoteContent -Encoding UTF8
+    try {
+        Set-Content -Path $profilePath -Value $remoteContent -Encoding UTF8
+    } catch {
+        Write-Fail "Could not write to $profilePath."
+        return
+    }
 }
 
 Write-Ok 'PowerShell profile written.'

@@ -9,6 +9,7 @@
 #   Downloads dotbashrc or dotzshrc from GitHub,
 #   backs up the existing rc file, writes the new profile, and reports status.
 #   Target shell is determined from the invoking shell ($PPID). If the shell is not bash or zsh,
+#   both bash and zsh profiles are installed.
 #
 # .EXAMPLE
 #   curl -fsSL https://raw.githubusercontent.com/jakehildreth/DollarSignPROFILE/refs/heads/main/installers/install.sh | bash
@@ -36,7 +37,7 @@ _install_for_shell() {
     local rc_file="$3"
 
     local content
-    if ! content="$(curl -fsSL "$profile_url" 2>/dev/null)"; then
+    if ! content="$(curl -fsSL --connect-timeout 5 "$profile_url" 2>/dev/null)"; then
                 __error "Download failed for ${shell_name} profile (${profile_url}). Verify the URL is reachable and the file exists."
         return 1
     fi
@@ -56,8 +57,8 @@ _install_for_shell() {
         fi
 
         local local_stripped remote_stripped
-        local_stripped="$(sed '/^# DollarSignPROFILE:AutoUpdate=/d' "$rc_file")"
-        remote_stripped="$(printf '%s\n' "$content" | sed '/^# DollarSignPROFILE:AutoUpdate=/d')"
+        local_stripped="$(sed '/^# DollarSignPROFILE:AutoUpdate=/d' "$rc_file" | tr -d '\r')"
+        remote_stripped="$(printf '%s\n' "$content" | sed '/^# DollarSignPROFILE:AutoUpdate=/d' | tr -d '\r')"
         if [[ "$local_stripped" == "$remote_stripped" ]]; then
             return 0
         fi
@@ -91,8 +92,8 @@ _install_for_shell() {
                         ;;
                     5)
                         local _diff_output
-                        local_stripped="$(sed '/^# DollarSignPROFILE:AutoUpdate=/d' "$rc_file")"
-                        remote_stripped="$(printf '%s\n' "$content" | sed '/^# DollarSignPROFILE:AutoUpdate=/d')"
+                        local_stripped="$(sed '/^# DollarSignPROFILE:AutoUpdate=/d' "$rc_file" | tr -d '\r')"
+                        remote_stripped="$(printf '%s\n' "$content" | sed '/^# DollarSignPROFILE:AutoUpdate=/d' | tr -d '\r')"
                         _diff_output="$(diff <(printf '%s\n' "$local_stripped") <(printf '%s\n' "$remote_stripped"))"
                         if [[ -z "$_diff_output" ]]; then
                             __info "No differences between installed and remote profile."
@@ -141,6 +142,7 @@ _install_for_shell() {
         unset _write_header
     else
         __info "Installing ${shell_name} profile → ${rc_file}"
+        mkdir -p "$(dirname "$rc_file")"
         if ! printf '%s\n' "$content" > "$rc_file"; then
             __error "Could not write to ${rc_file}."
             return 1
@@ -148,7 +150,7 @@ _install_for_shell() {
     fi
 
     __success "${shell_name} profile written to ${rc_file}."
-    __info "Restart your ${shell_name} session or run: . ${rc_file}"
+    exec "$shell_name" -l
 }
 
 _invoking_shell="$(basename "$(ps -p $PPID -o comm= 2>/dev/null)")"
