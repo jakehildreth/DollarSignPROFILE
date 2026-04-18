@@ -14,6 +14,15 @@ unset -f __dollarsign_autoupdate
 export LANG='en_US.UTF-8'
 export LC_ALL='en_US.UTF-8'
 
+# zsh-autosuggestions — source from first known install location
+for __zas_path in \
+    "$(brew --prefix 2>/dev/null)/share/zsh-autosuggestions/zsh-autosuggestions.zsh" \
+    '/usr/share/zsh-autosuggestions/zsh-autosuggestions.zsh' \
+    '/usr/share/zsh/plugins/zsh-autosuggestions/zsh-autosuggestions.zsh'; do
+    [[ -f "$__zas_path" ]] && { source "$__zas_path"; break; }
+done
+unset __zas_path
+
 # Keybindings
 bindkey '^U'      backward-kill-line      # Ctrl+U        — clear to start of line
 bindkey '^[^['    kill-whole-line         # Escape Escape — clear line (safe; avoids breaking alt sequences)
