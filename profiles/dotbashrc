@@ -1,5 +1,6 @@
 # dotbashrc
-# https://github.com/jakehildreth/profile
+# Version 2026.4.180945
+# https://github.com/jakehildreth/profile/profiles/dotbashrc
 
 #region Self-Update
 __dollarsign_autoupdate() {

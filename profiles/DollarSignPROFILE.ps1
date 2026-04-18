@@ -1,5 +1,6 @@
-# DollarSignPROFILE
-# https://github.com/jakehildreth/profile
+# DollarSignPROFILE.ps1
+# Version 2026.4.180945
+# https://github.com/jakehildreth/profile/profiles/DollarSignPROFILE.ps1
 
 #region Self-Update
 try {
