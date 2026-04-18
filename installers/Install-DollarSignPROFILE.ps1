@@ -24,17 +24,31 @@
 
 $ErrorActionPreference = 'Stop'
 
-function Write-Info    ($msg) { Write-Host "[i] $msg" -ForegroundColor Cyan }
-function Write-Ok      ($msg) { Write-Host "[+] $msg" -ForegroundColor Green }
-function Write-Fail    ($msg) { Write-Host "[x] $msg" -ForegroundColor Red }
-function Write-Ask     ($msg) { Write-Host "[?] $msg" -ForegroundColor Blue }
+function Write-Info ($msg) { Write-Host "[i] $msg" -ForegroundColor Cyan }
+function Write-Ok   ($msg) { Write-Host "[+] $msg" -ForegroundColor Green }
+function Write-Ask  ($msg) { Write-Host "[?] $msg" -ForegroundColor Blue }
 
-$sourceUri = 'https://raw.githubusercontent.com/jakehildreth/DollarSignPROFILE/refs/heads/main/profiles/DollarSignPROFILE.ps1'
+function Write-Fail {
+    param(
+        [string]$Message,
+        [System.Management.Automation.ErrorCategory]$Category = [System.Management.Automation.ErrorCategory]::NotSpecified,
+        [object]$TargetObject = $null
+    )
+    $errorRecord = [System.Management.Automation.ErrorRecord]::new(
+        [System.Exception]::new($Message),
+        'DollarSignPROFILE.InstallError',
+        $Category,
+        $TargetObject
+    )
+    Write-Error -ErrorRecord $errorRecord -ErrorAction SilentlyContinue
+}
+
+Set-Variable -Name sourceUri -Value 'https://raw.githubusercontent.com/jakehildreth/DollarSignPROFILE/refs/heads/main/profiles/DollarSignPROFILE.ps1' -Option ReadOnly
 
 try {
     $remoteContent = (Invoke-WebRequest -Uri $sourceUri -UseBasicParsing -TimeoutSec 10).Content
 } catch {
-    Write-Fail "Download failed ($sourceUri). Verify the URL is reachable and the file exists."
+    Write-Fail -Message "Download failed ($sourceUri). Verify the URL is reachable and the file exists." -Category ConnectionError -TargetObject $sourceUri
     return
 }
 
@@ -126,7 +140,7 @@ if (Test-Path -Path $profilePath) {
         Copy-Item -Path $profilePath -Destination $backup
         Write-Info "Backup created: $backup"
     } catch {
-        Write-Fail "Could not create backup of $profilePath. Aborting."
+        Write-Fail -Message "Could not create backup of $profilePath." -Category WriteError -TargetObject $profilePath
         return
     }
 
@@ -134,7 +148,7 @@ if (Test-Path -Path $profilePath) {
     try {
         Set-Content -Path $profilePath -Value $finalContent -Encoding UTF8
     } catch {
-        Write-Fail "Could not write to $profilePath."
+        Write-Fail -Message "Could not write to $profilePath." -Category WriteError -TargetObject $profilePath
         return
     }
 
@@ -148,7 +162,7 @@ if (Test-Path -Path $profilePath) {
     try {
         Set-Content -Path $profilePath -Value $remoteContent -Encoding UTF8
     } catch {
-        Write-Fail "Could not write to $profilePath."
+        Write-Fail -Message "Could not write to $profilePath." -Category WriteError -TargetObject $profilePath
         return
     }
 }

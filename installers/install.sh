@@ -8,14 +8,17 @@
 # .DESCRIPTION
 #   Downloads dotbashrc or dotzshrc from GitHub,
 #   backs up the existing rc file, writes the new profile, and reports status.
-#   Target shell is determined from the invoking shell ($PPID). If the shell is not bash or zsh,
-#   both bash and zsh profiles are installed.
+#   Target shell is determined from the invoking shell ($PPID). Only bash and zsh are supported.
 #
 # .EXAMPLE
 #   curl -fsSL https://raw.githubusercontent.com/jakehildreth/DollarSignPROFILE/refs/heads/main/installers/install.sh | bash
 #
 # .NOTES
 #   Source: https://github.com/jakehildreth/DollarSignPROFILE
+
+set -euo pipefail
+export LANG="${LANG:-en_US.UTF-8}"
+export LC_ALL="${LC_ALL:-en_US.UTF-8}"
 
 readonly _BASH_PROFILE_URL='https://raw.githubusercontent.com/jakehildreth/DollarSignPROFILE/refs/heads/main/profiles/dotbashrc'
 readonly _ZSH_PROFILE_URL='https://raw.githubusercontent.com/jakehildreth/DollarSignPROFILE/refs/heads/main/profiles/dotzshrc'
@@ -44,7 +47,7 @@ _install_for_shell() {
 
     if [[ -f "$rc_file" ]]; then
         local is_dollarsign=0
-        grep -q 'DollarSignPROFILE' "$rc_file" 2>/dev/null && is_dollarsign=1
+        grep -q 'DollarSignPROFILE' "$rc_file" 2>/dev/null && is_dollarsign=1 || true
 
         local preference
         preference="$(sed -n 's/^# DollarSignPROFILE:AutoUpdate=//p' "$rc_file" | head -1)"
@@ -57,8 +60,8 @@ _install_for_shell() {
         fi
 
         local local_stripped remote_stripped
-        local_stripped="$(sed '/^# DollarSignPROFILE:AutoUpdate=/d' "$rc_file" | tr -d '\r')"
-        remote_stripped="$(printf '%s\n' "$content" | sed '/^# DollarSignPROFILE:AutoUpdate=/d' | tr -d '\r')"
+        local_stripped="$(sed '/^# DollarSignPROFILE:AutoUpdate=/d' "$rc_file" | tr -d '\r' | sed '/./,$!d')"
+        remote_stripped="$(printf '%s\n' "$content" | sed '/^# DollarSignPROFILE:AutoUpdate=/d' | tr -d '\r' | sed '/./,$!d')"
         if [[ "$local_stripped" == "$remote_stripped" ]]; then
             return 0
         fi
@@ -75,9 +78,10 @@ _install_for_shell() {
             fi
 
             local _choice
-            PS3='Your choice: '
+            PS3='Your choice [1-5, default 2]: '
             while true; do
                 select _choice in 'Yes, always' 'Yes, just this time' 'No, not this time' 'No, never' 'More details'; do
+                    [[ -z "$REPLY" ]] && REPLY=2
                     case "$REPLY" in
                     1) _write_header='always'; break 2 ;;
                     2) break 2 ;;
@@ -92,8 +96,8 @@ _install_for_shell() {
                         ;;
                     5)
                         local _diff_output
-                        local_stripped="$(sed '/^# DollarSignPROFILE:AutoUpdate=/d' "$rc_file" | tr -d '\r')"
-                        remote_stripped="$(printf '%s\n' "$content" | sed '/^# DollarSignPROFILE:AutoUpdate=/d' | tr -d '\r')"
+                        local_stripped="$(sed '/^# DollarSignPROFILE:AutoUpdate=/d' "$rc_file" | tr -d '\r' | sed '/./,$!d')"
+                        remote_stripped="$(printf '%s\n' "$content" | sed '/^# DollarSignPROFILE:AutoUpdate=/d' | tr -d '\r' | sed '/./,$!d')"
                         _diff_output="$(diff <(printf '%s\n' "$local_stripped") <(printf '%s\n' "$remote_stripped"))"
                         if [[ -z "$_diff_output" ]]; then
                             __info "No differences between installed and remote profile."
@@ -159,9 +163,8 @@ case "$_invoking_shell" in
     bash)  _install_for_shell 'bash' "$_BASH_PROFILE_URL" "$HOME/.bashrc" ;;
     zsh)   _install_for_shell 'zsh'  "$_ZSH_PROFILE_URL"  "${ZDOTDIR:-$HOME}/.zshrc" ;;
     *)
-        __info "Invoking shell '${_invoking_shell}' not directly targeted. Installing for bash and zsh."
-        _install_for_shell 'bash' "$_BASH_PROFILE_URL" "$HOME/.bashrc"
-        _install_for_shell 'zsh'  "$_ZSH_PROFILE_URL"  "${ZDOTDIR:-$HOME}/.zshrc"
+        __error "Unsupported shell '${_invoking_shell}'. Only bash and zsh are supported."
+        exit 1
         ;;
 esac
 
