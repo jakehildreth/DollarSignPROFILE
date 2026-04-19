@@ -45,7 +45,7 @@ Consistent across all three shells on Windows and macOS:
 
 ### Prompt
 
-Displays terminal dimensions, current path (relative to `~`), and git branch on every line.
+Displays terminal dimensions, current path, git branch, and shell name.
 
 ```
 [100x35] ~/dev/profile [main]
@@ -55,9 +55,9 @@ PS7>
 ### Functions
 
 - `New-Credential` / `new_credential` — interactive credential prompt, cross-platform
-- `New-Function` — scaffolds a new PowerShell function file with comment-based help
 - `Get-IPAddress` / `get_ip_address` — lists non-loopback IPv4 addresses
 - `gai` — copies AI instruction URLs to clipboard for use with GitHub Copilot
+- `New-Function` — scaffolds a new PowerShell function file with comment-based help
 
 ### Auto-Update
 
