@@ -59,19 +59,19 @@ if (Test-Path -Path $profilePath) {
     $localContent = [System.IO.File]::ReadAllText($profilePath)
 
     $preference = $null
-    if ($localContent -match '(?m)^# DollarSignPROFILE:AutoUpdate=(\w+)') {
+    if ($localContent -match '(?m)^# AutoUpdate=(\w+)') {
         $preference = $Matches[1]
     }
 
     if ($preference -eq 'never') {
         Write-Info 'New PowerShell profile available. Skipping.'
         Write-Info "To change this behavior, remove this line from your profile:"
-        Write-Host "`n  # DollarSignPROFILE:AutoUpdate=never`n"
+        Write-Host "`n  # AutoUpdate=never`n"
         return
     }
 
-    $localStripped  = ($localContent  -replace '(?m)^# DollarSignPROFILE:AutoUpdate=\w+(\r?\n)?', '').Trim() -replace '\r\n', "`n"
-    $remoteStripped = ($remoteContent -replace '(?m)^# DollarSignPROFILE:AutoUpdate=\w+(\r?\n)?', '').Trim() -replace '\r\n', "`n"
+    $localStripped  = ($localContent  -replace '(?m)^# AutoUpdate=\w+(\r?\n)?', '').Trim() -replace '\r\n', "`n"
+    $remoteStripped = ($remoteContent -replace '(?m)^# AutoUpdate=\w+(\r?\n)?', '').Trim() -replace '\r\n', "`n"
 
     if ($localStripped -eq $remoteStripped) {
         return
@@ -126,8 +126,8 @@ if (Test-Path -Path $profilePath) {
             1 { $writeHeader = $null }
             2 { Write-Info 'Installation skipped.'; return }
             3 {
-                $stripped = $localContent -replace '(?m)^# DollarSignPROFILE:AutoUpdate=\w+(\r?\n)?', ''
-                Set-Content -Path $profilePath -Value ("# DollarSignPROFILE:AutoUpdate=never`n" + $stripped) -Encoding UTF8
+                $stripped = $localContent -replace '(?m)^# AutoUpdate=\w+(\r?\n)?', ''
+                Set-Content -Path $profilePath -Value ("# AutoUpdate=never`n" + $stripped) -Encoding UTF8
                 Write-Info 'Installation skipped. You will not be prompted again.'
                 return
             }
@@ -144,7 +144,7 @@ if (Test-Path -Path $profilePath) {
         return
     }
 
-    $finalContent = if ($writeHeader) { "# DollarSignPROFILE:AutoUpdate=$writeHeader`n$remoteContent" } else { $remoteContent }
+    $finalContent = if ($writeHeader) { "# AutoUpdate=$writeHeader`n$remoteContent" } else { $remoteContent }
     try {
         Set-Content -Path $profilePath -Value $finalContent -Encoding UTF8
     } catch {

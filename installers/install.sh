@@ -68,18 +68,18 @@ _install_for_shell() {
         grep -qE 'dot(bash|zsh)rc' "$rc_file" 2>/dev/null && is_dollarsign=1 || true
 
         local preference
-        preference="$(sed -n 's/^# DollarSignPROFILE:AutoUpdate=//p' "$rc_file" | head -1)"
+        preference="$(sed -n 's/^# AutoUpdate=//p' "$rc_file" | head -1)"
 
         if [[ "$preference" == 'never' ]]; then
             __info "New ${shell_name} profile available. Skipping."
             __info "To change this behavior, remove this line from your $(basename "$rc_file"):"
-            printf '\n  # DollarSignPROFILE:AutoUpdate=never\n\n' 
+            printf '\n  # AutoUpdate=never\n\n' 
             return 0
         fi
 
         local local_stripped remote_stripped
-        local_stripped="$(sed '/^# DollarSignPROFILE:AutoUpdate=/d' "$rc_file" | tr -d '\r' | sed '/./,$!d')"
-        remote_stripped="$(printf '%s\n' "$content" | sed '/^# DollarSignPROFILE:AutoUpdate=/d' | tr -d '\r' | sed '/./,$!d')"
+        local_stripped="$(sed '/^# AutoUpdate=/d' "$rc_file" | tr -d '\r' | sed '/./,$!d')"
+        remote_stripped="$(printf '%s\n' "$content" | sed '/^# AutoUpdate=/d' | tr -d '\r' | sed '/./,$!d')"
         if [[ "$local_stripped" == "$remote_stripped" ]]; then
             return 0
         fi
@@ -107,16 +107,16 @@ _install_for_shell() {
                 3) __info 'Installation skipped.'; unset _write_header; return 0 ;;
                 4)
                     local _stripped
-                    _stripped="$(sed '/^# DollarSignPROFILE:AutoUpdate=/d' "$rc_file")"
-                    printf '# DollarSignPROFILE:AutoUpdate=never\n%s\n' "$_stripped" > "$rc_file"
+                    _stripped="$(sed '/^# AutoUpdate=/d' "$rc_file")"
+                    printf '# AutoUpdate=never\n%s\n' "$_stripped" > "$rc_file"
                     __info 'Installation skipped. You will not be prompted again.'
                     unset _write_header _stripped
                     return 0
                     ;;
                 5)
                     local _diff_output
-                    local_stripped="$(sed '/^# DollarSignPROFILE:AutoUpdate=/d' "$rc_file" | tr -d '\r' | sed '/./,$!d')"
-                    remote_stripped="$(printf '%s\n' "$content" | sed '/^# DollarSignPROFILE:AutoUpdate=/d' | tr -d '\r' | sed '/./,$!d')"
+                    local_stripped="$(sed '/^# AutoUpdate=/d' "$rc_file" | tr -d '\r' | sed '/./,$!d')"
+                    remote_stripped="$(printf '%s\n' "$content" | sed '/^# AutoUpdate=/d' | tr -d '\r' | sed '/./,$!d')"
                     _diff_output="$(diff <(printf '%s\n' "$local_stripped") <(printf '%s\n' "$remote_stripped"))" || true
                     if [[ -z "$_diff_output" ]]; then
                         __info "No differences between installed and remote profile."
@@ -149,7 +149,7 @@ _install_for_shell() {
         fi
 
         if [[ -n "$_write_header" ]]; then
-            if ! printf '# DollarSignPROFILE:AutoUpdate=%s\n%s\n' "$_write_header" "$content" > "$rc_file"; then
+            if ! printf '# AutoUpdate=%s\n%s\n' "$_write_header" "$content" > "$rc_file"; then
                 __error "Could not write to ${rc_file}."
                 return 1
             fi
