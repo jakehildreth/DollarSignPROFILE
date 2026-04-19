@@ -24,7 +24,7 @@ iwr profile.jakehildreth.com | iex
 curl profile.jakehildreth.com | $SHELL
 ```
 
-The installer detects your shell automatically, backs up your existing rc file with a timestamp, writes the new profile, and reloads your shell.
+The installer detects your shell automatically, backs up your existing `$PROFILE`/`.zshrc`/`.bashrc` file with a timestamp, writes the new profile, and reloads your shell.
 
 On each subsequent interactive terminal session, the profile loads and checks for updates.
 
