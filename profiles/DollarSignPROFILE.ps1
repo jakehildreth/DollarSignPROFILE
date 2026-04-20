@@ -1,5 +1,5 @@
 # DollarSignPROFILE.ps1
-# Version 2026.4.180945
+# Version 2026.4.201015
 # https://github.com/jakehildreth/profile/profiles/DollarSignPROFILE.ps1
 
 #region Self-Update
@@ -142,12 +142,44 @@ function Get-IPAddress {
 }
 
 function gai {
-    @'
+    param(
+        [switch]$Personal,
+        [switch]$PowerShell,
+        [switch]$Pester
+    )
+
+    $usePersonal = $Personal.IsPresent
+    $usePowerShell = $PowerShell.IsPresent
+    $usePester = $Pester.IsPresent
+
+    if (-not ($usePersonal -or $usePowerShell -or $usePester)) {
+        $usePersonal = $true
+        $usePowerShell = $true
+        $usePester = $true
+    }
+
+    $instructions = ''
+
+    if ($usePersonal) {
+        $instructions += @'
 Please read and follow my personal instructions:
 https://raw.githubusercontent.com/jakehildreth/jakehildreth/refs/heads/main/.github/copilot-instructions.md
-then read and follow PowerShell best practices:
+'@
+    }
+
+    if ($usePowerShell) {
+        $instructions += @'
+Read and follow PowerShell best practices:
 https://raw.githubusercontent.com/github/awesome-copilot/refs/heads/main/instructions/powershell.instructions.md
-then read and follow Pester testing best practices:
+'@
+    }
+
+    if ($usePester) {
+        $instructions += @'
+Read and follow Pester testing best practices:
 https://raw.githubusercontent.com/github/awesome-copilot/refs/heads/main/instructions/powershell-pester-5.instructions.md
-'@ | Set-Clipboard
+'@
+    }
+    
+    $instructions | Set-Clipboard
 }

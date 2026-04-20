@@ -1,5 +1,5 @@
 # dotbashrc
-# Version 2026.4.180945
+# Version 2026.4.201015
 # https://github.com/jakehildreth/profile/profiles/dotbashrc
 
 #region Self-Update
@@ -86,21 +86,54 @@ get_ip_address() {
 }
 
 # gai — copy AI instruction URLs to clipboard
+# flags: -p personal, -w powershell, -t pester (default: all)
 gai() {
-    local urls
-    urls='Please read and follow my personal instructions:
+    local usePersonal=false
+    local usePowerShell=false
+    local usePester=false
+
+    local OPTIND opt
+    while getopts ':pwt' opt; do
+        case "$opt" in
+            p) usePersonal=true ;;
+            w) usePowerShell=true ;;
+            t) usePester=true ;;
+            *) ;;
+        esac
+    done
+
+    if [[ "$usePersonal" == false && "$usePowerShell" == false && "$usePester" == false ]]; then
+        usePersonal=true
+        usePowerShell=true
+        usePester=true
+    fi
+
+    local instructions=''
+
+    if [[ "$usePersonal" == true ]]; then
+        instructions+='Please read and follow my personal instructions:
 https://raw.githubusercontent.com/jakehildreth/jakehildreth/refs/heads/main/.github/copilot-instructions.md
-then read and follow PowerShell best practices:
+'
+    fi
+
+    if [[ "$usePowerShell" == true ]]; then
+        instructions+='then read and follow PowerShell best practices:
 https://raw.githubusercontent.com/github/awesome-copilot/refs/heads/main/instructions/powershell.instructions.md
-then read and follow Pester testing best practices:
+'
+    fi
+
+    if [[ "$usePester" == true ]]; then
+        instructions+='then read and follow Pester testing best practices:
 https://raw.githubusercontent.com/github/awesome-copilot/refs/heads/main/instructions/powershell-pester-5.instructions.md'
+    fi
+
     if [[ "$(uname -s)" == 'Darwin' ]]; then
-        printf '%s' "$urls" | pbcopy
+        printf '%s' "$instructions" | pbcopy
     elif command -v xclip &>/dev/null; then
-        printf '%s' "$urls" | xclip -selection clipboard
+        printf '%s' "$instructions" | xclip -selection clipboard
     elif command -v xsel &>/dev/null; then
-        printf '%s' "$urls" | xsel --clipboard --input
+        printf '%s' "$instructions" | xsel --clipboard --input
     else
-        printf '[!] No clipboard tool found. Copy the following manually:\n\n%s\n' "$urls"
+        printf '[!] No clipboard tool found. Copy the following manually:\n\n%s\n' "$instructions"
     fi
 }
