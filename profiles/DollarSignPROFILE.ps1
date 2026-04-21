@@ -1,5 +1,5 @@
 # DollarSignPROFILE.ps1
-# Version 2026.4.201015
+# Version 2026.4.202050
 # https://github.com/jakehildreth/profile/profiles/DollarSignPROFILE.ps1
 
 #region Self-Update
@@ -164,6 +164,7 @@ function gai {
         $instructions += @'
 Please read and follow my personal instructions:
 https://raw.githubusercontent.com/jakehildreth/jakehildreth/refs/heads/main/.github/copilot-instructions.md
+
 '@
     }
 
@@ -171,6 +172,7 @@ https://raw.githubusercontent.com/jakehildreth/jakehildreth/refs/heads/main/.git
         $instructions += @'
 Read and follow PowerShell best practices:
 https://raw.githubusercontent.com/github/awesome-copilot/refs/heads/main/instructions/powershell.instructions.md
+
 '@
     }
 
@@ -178,6 +180,7 @@ https://raw.githubusercontent.com/github/awesome-copilot/refs/heads/main/instruc
         $instructions += @'
 Read and follow Pester testing best practices:
 https://raw.githubusercontent.com/github/awesome-copilot/refs/heads/main/instructions/powershell-pester-5.instructions.md
+
 '@
     }
     
