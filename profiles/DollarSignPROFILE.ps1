@@ -1,5 +1,5 @@
 # DollarSignPROFILE.ps1
-# Version 2026.4.202050
+# Version 2026.4.220855
 # https://github.com/jakehildreth/profile/profiles/DollarSignPROFILE.ps1
 
 #region Self-Update
@@ -35,6 +35,12 @@ Set-PSReadLineKeyHandler -Chord 'Alt+Backspace' -Function BackwardDeleteWord
 Set-PSReadLineKeyHandler -Chord 'Ctrl+Delete' -Function DeleteWord
 Set-PSReadLineKeyHandler -Chord 'Alt+Delete' -Function DeleteWord
 
+function Get-CalVer {
+    [Alias('calver')]
+    param()
+    (Get-Date -Format yyyy.M.dHHmm).ToString()
+}
+
 function New-Credential {
     param(
         [string]$User
@@ -51,6 +57,7 @@ Enter your credentials.
 
     $Credential
 }
+
 function New-Function {
     [CmdletBinding()]
     param (

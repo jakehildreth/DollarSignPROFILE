@@ -1,5 +1,5 @@
 # dotzshrc
-# Version 2026.4.201015
+# Version 2026.4.220855
 # https://github.com/jakehildreth/profile/profiles/dotzshrc
 
 #region Self-Update
@@ -44,6 +44,16 @@ bindkey '^[\177'  backward-kill-word      # Alt+Backspace
 bindkey '^H'      backward-kill-word      # Ctrl+Backspace
 bindkey '^[[3;5~' kill-word               # Ctrl+Delete
 bindkey '^[[3;3~' kill-word               # Alt+Delete
+
+# calver — print current CalVer timestamp (yyyy.M.dHHmm)
+calver() {
+    local y m d hm
+    y="$(date +%Y)"
+    m="$(date +%m)"
+    d="$(date +%d)"
+    hm="$(date +%H%M)"
+    printf '%s.%s.%s%s\n' "$y" "${m#0}" "${d#0}" "$hm"
+}
 
 # new_credential — interactive credential prompt
 # Result stored in __CREDENTIAL_USER and __CREDENTIAL_PASS
